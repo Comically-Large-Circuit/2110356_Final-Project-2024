@@ -4,8 +4,7 @@
 #include <Adafruit_BME280.h>
 
 /* PIN
-Light Pin: SDA-2 SCL-4
-Air Pin: SDA-21 SCL-22
+Light Pin & Air Pin: SDA-21 SCL-22
 Moist Meter: 15
 Ultrasonic Pin: trig-5 echo-18
 */
@@ -36,7 +35,7 @@ void setup() {
   Serial.begin(9600);
 
   // Initialize the I2C bus for Light measuring
-  Wire.begin(2, 4); // SDA=2, SCL=4
+  Wire.begin(21, 22); // SDA21, SCL=22
   
   //setup for air measuring
   bool status;
@@ -44,14 +43,16 @@ void setup() {
   
   //Light measurre init Log
   if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {
-    Serial.println(F("BH1750 initialized"));
+    //Serial.println(F("BH1750 initialized"));
   } else {
     Serial.println(F("Error initializing BH1750"));
+    while(1);
   }
 
   //Air measure error Log
   if (!status) {
     Serial.println("Could not find a valid BME280 sensor, check wiring!");
+    while(1);
   }
 
   //Ultrasonic Setup
@@ -63,6 +64,23 @@ void setup() {
 void loop() {
 
   //Print Light Value 
+  printLightValues();
+
+  //Print Air Value
+  printAirValues();
+
+  //Moist Meter 
+  printMoistMeter();
+
+  //Ultrasonic
+  printUltraSonicValues();
+
+  Serial.println();
+  delay(3000);
+}
+
+
+void printLightValues(){
   float lux = lightMeter.readLightLevel();
   if (lux >= 0) {
     Serial.print("Light: ");
@@ -71,39 +89,7 @@ void loop() {
   } else {
     Serial.println("Error reading light level");
   }
-
-  //Print Air Value
-  printAirValues();
-
-  //Moist Meter 
-  sensor_analog = analogRead(sensor_pin);
-  _moisture = ( 100 - ( (sensor_analog/4095.00) * 100 ) );
-  Serial.print("Moisture = ");
-  Serial.print(_moisture);  /* Print Temperature on the serial window */
-  Serial.println("%");
-
-  //Ultrasonic
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  // Sets the trigPin on HIGH state for 10 micro seconds
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(echoPin, HIGH);
-  // Calculate the distance
-  distanceCm = duration * SOUND_SPEED/2;
-  // Convert to inches
-  distanceInch = distanceCm * CM_TO_INCH;
-  // Prints the distance in the Serial Monitor
-  Serial.print("Distance (cm): ");
-  Serial.println(distanceCm);
-  Serial.print("Distance (inch): ");
-  Serial.println(distanceInch);
-
-  delay(3000);
 }
-
 
 void printAirValues() {
   Serial.print("Temperature = ");
@@ -126,6 +112,32 @@ void printAirValues() {
   Serial.print("Humidity = ");
   Serial.print(bme.readHumidity());
   Serial.println(" %");
+}
 
-  Serial.println();
+void printMoistMeter(){
+  sensor_analog = analogRead(sensor_pin);
+  _moisture = ( 100 - ( (sensor_analog/4095.00) * 100 ) );
+  Serial.print("Moisture = ");
+  Serial.print(_moisture);  /* Print Temperature on the serial window */
+  Serial.println("%");
+}
+
+void printUltraSonicValues(){
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(echoPin, HIGH);
+  // Calculate the distance
+  distanceCm = duration * SOUND_SPEED/2;
+  // Convert to inches
+  distanceInch = distanceCm * CM_TO_INCH;
+  // Prints the distance in the Serial Monitor
+  Serial.print("Distance (cm): ");
+  Serial.println(distanceCm);
+  Serial.print("Distance (inch): ");
+  Serial.println(distanceInch);
 }

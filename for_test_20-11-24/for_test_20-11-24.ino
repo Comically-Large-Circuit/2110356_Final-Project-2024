@@ -13,13 +13,15 @@ BH1750 lightMeter;
 int _moisture,sensor_analog;
 int sensor_pin = 15;  
 
+//
+
 void setup() {
   Serial.begin(9600);
   Serial.println(F("BME280 test"));
 
   bool status;
   
-  Wire.begin(2,4);
+  //Wire.begin(2,4);
 
   // default settings
   // (you can also pass in a Wire library object like &Wire2)
