@@ -28,7 +28,7 @@ This repository contains the final project for ...
 | GPIO 22 | BH1750 | Light Sensor |
 | GPIO 21 | BME280 | Humidity Sensor |
 | GPIO 22 | BME280 | Humidity Sensor |
-| GPIO 15 | ||
+| GPIO 32 | FC-28  | Soil Humidity Sensor |
 
 ## Virtual Pin for Blynk
 
