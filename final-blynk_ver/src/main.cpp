@@ -36,6 +36,46 @@ Adafruit_BME280 bme; // I2C
 int _moisture, sensor_analog;
 int sensor_pin = 32;
 
+// Water pump button 
+const int button_pump = 34;
+const int Pump_Output = 33;
+
+unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+
+int buttonState;            // the current reading from the input pin
+int lastButtonState = LOW;
+int reading;
+void pourWater(){
+  digitalWrite(Pump_Output, HIGH);
+  unsigned long startMillis = millis();
+  Serial.println("Pumping water ...");
+  while (millis() - startMillis < 5000) {
+    // wait for 1 second
+  }
+  digitalWrite(Pump_Output, LOW);
+  Serial.println("Water pumped");
+}
+
+void pumpControl(){  
+  reading = digitalRead(button_pump);
+  if (reading != lastButtonState) {
+    lastDebounceTime = millis();
+  }
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    if (reading != buttonState) {
+      buttonState = reading;
+      if(buttonState == HIGH){
+        pourWater();
+      }
+    } 
+  }
+  lastButtonState = reading;
+}
+
+
+
+
 // Ultrasonic
 const int trigPin = 5;
 const int echoPin = 18;
@@ -44,6 +84,9 @@ const int echoPin = 18;
 long duration;
 float distanceCm;
 float distanceInch;
+
+// Local IP Camera
+String my_Local_IP;
 
 BlynkTimer timer;
 
@@ -160,6 +203,7 @@ BLYNK_CONNECTED()
   Blynk.setProperty(V3, "offImageUrl", "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations.png");
   Blynk.setProperty(V3, "onImageUrl", "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations_pressed.png");
   Blynk.setProperty(V3, "url", "https://docs.blynk.io/en/getting-started/what-do-i-need-to-blynk/how-quickstart-device-was-made");
+  Blynk.setProperty(V10, "urls", "http://"+my_Local_IP+"/capture");
 }
 
 // This function sends Arduino's uptime every second to Virtual Pin 2.
@@ -176,6 +220,11 @@ void setup()
   Serial.begin(115200);
   // Initialize the I2C bus for Light measuring
   Wire.begin(21, 22); // SDA21, SCL=22
+  // Pump
+  pinMode(button_pump, INPUT);
+  pinMode(Pump_Output, OUTPUT);
+  
+  
 
   // setup for air measuring
   bool status;
@@ -215,11 +264,14 @@ void setup()
 
   // Setup a function to be called every second
   timer = BlynkTimer();
+  // Camera Local IP
+  my_Local_IP = WiFi.localIP().toString();
 }
 
 void loop()
 {
   // printMoistMeter();
+  pumpControl();
   Blynk.run();
   timer.run();
   // You can inject your own code or combine it with other sketches.
