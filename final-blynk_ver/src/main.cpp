@@ -163,6 +163,14 @@ void printMoistMeter()
 
 // This function is called every time the Virtual Pin 0 state changes
 static int timerID = -1;
+BLYNK_WRITE(V9) {
+  int value = param.asInt();
+  if (value == 1) {
+    pourWater(); // Call the function to perform the action
+    Blynk.virtualWrite(V9, 0); // Reset the virtual pin state to 0
+  }
+}
+
 BLYNK_WRITE(V0)
 {
   // Set incoming value from pin V0 to a variable
