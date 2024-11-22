@@ -1,9 +1,3 @@
-/*************************************************************
-
-  This is a simple demo of sending and receiving some data.
-  Be sure to check out other examples!
- *************************************************************/
-
 /* Fill-in information from Blynk Device Info here */
 #define BLYNK_TEMPLATE_ID "TMPL6DRQnlCVV"
 #define BLYNK_TEMPLATE_NAME "Quickstart Template"
@@ -34,7 +28,7 @@ Adafruit_BME280 bme; // I2C
 
 // Moist Meter
 int _moisture, sensor_analog;
-int sensor_pin = 2;
+int sensor_pin = 15;
 
 // Ultrasonic
 const int trigPin = 5;
@@ -47,7 +41,7 @@ float distanceInch;
 
 BlynkTimer timer;
 
-void printLightValues()
+float printLightValues()
 {
   float lux = lightMeter.readLightLevel();
   if (lux >= 0)
@@ -60,6 +54,7 @@ void printLightValues()
   {
     Serial.println("Error reading light level");
   }
+  return lux;
 }
 
 void printAirValues()
@@ -124,15 +119,25 @@ BLYNK_WRITE(V0)
 
   // Update state
   Blynk.virtualWrite(V1, value);
-  while (value == 1)
+  if (value == 1)
   {
-    printLightValues();
-    printAirValues();
-    printUltraSonicValues();
-    Blynk.virtualWrite(V4, 30 - distanceCm);
-    printMoistMeter();
-    Serial.println("");
-    delay(2000);
+    // Start a timer to read sensor values periodically
+    timer.setInterval(1000L, []()
+                      {
+      printAirValues();
+      printUltraSonicValues();
+      Blynk.virtualWrite(V4, 30 - distanceCm);
+      Blynk.virtualWrite(V5, printLightValues());
+      Blynk.virtualWrite(V6, _moisture);
+      Blynk.virtualWrite(V7, bme.readHumidity());
+      Blynk.virtualWrite(V8, bme.readTemperature());
+      printMoistMeter();
+      Serial.println(""); });
+  }
+  else
+  {
+    // Stop the timer if value is not 1
+    // timer.deleteTimer();
   }
 }
 
@@ -194,11 +199,12 @@ void setup()
   // Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass, IPAddress(192,168,1,100), 8080);
 
   // Setup a function to be called every second
-  timer.setInterval(1000L, myTimerEvent);
+  timer = BlynkTimer();
 }
 
 void loop()
 {
+  // printMoistMeter();
   Blynk.run();
   timer.run();
   // You can inject your own code or combine it with other sketches.
