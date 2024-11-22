@@ -15,15 +15,26 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
+#include <Wire.h>
+#include <BH1750.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
 char ssid[] = "thamva";
 char pass[] = "123456789";
 
+// Light Meter
+BH1750 lightMeter;
+
+// Air Measure
+#define SEALEVELPRESSURE_HPA (1013.25)
+Adafruit_BME280 bme; // I2C
+
 // Moist Meter
 int _moisture, sensor_analog;
-int sensor_pin = 15;
+int sensor_pin = 2;
 
 // Ultrasonic
 const int trigPin = 5;
@@ -35,6 +46,45 @@ float distanceCm;
 float distanceInch;
 
 BlynkTimer timer;
+
+void printLightValues()
+{
+  float lux = lightMeter.readLightLevel();
+  if (lux >= 0)
+  {
+    Serial.print("Light: ");
+    Serial.print(lux);
+    Serial.println(" lx");
+  }
+  else
+  {
+    Serial.println("Error reading light level");
+  }
+}
+
+void printAirValues()
+{
+  Serial.print("Temperature = ");
+  Serial.print(bme.readTemperature());
+  Serial.println(" *C");
+
+  // Convert temperature to Fahrenheit
+  /*Serial.print("Temperature = ");
+  Serial.print(1.8 * bme.readTemperature() + 32);
+  Serial.println(" *F");*/
+
+  Serial.print("Pressure = ");
+  Serial.print(bme.readPressure() / 100.0F);
+  Serial.println(" hPa");
+
+  Serial.print("Approx. Altitude = ");
+  Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
+  Serial.println(" m");
+
+  Serial.print("Humidity = ");
+  Serial.print(bme.readHumidity());
+  Serial.println(" %");
+}
 
 void printUltraSonicValues()
 {
@@ -76,9 +126,12 @@ BLYNK_WRITE(V0)
   Blynk.virtualWrite(V1, value);
   while (value == 1)
   {
-    printUltraSonicValues(); 
-    Blynk.virtualWrite(V4, 30-distanceCm);
+    printLightValues();
+    printAirValues();
+    printUltraSonicValues();
+    Blynk.virtualWrite(V4, 30 - distanceCm);
     printMoistMeter();
+    Serial.println("");
     delay(2000);
   }
 }
@@ -104,6 +157,33 @@ void setup()
 {
   // Debug console
   Serial.begin(115200);
+  // Initialize the I2C bus for Light measuring
+  Wire.begin(21, 22); // SDA21, SCL=22
+
+  // setup for air measuring
+  bool status;
+  status = bme.begin(0x76);
+
+  // Light measurre init Log
+  if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE))
+  {
+    // Serial.println(F("BH1750 initialized"));
+  }
+  else
+  {
+    Serial.println(F("Error initializing BH1750"));
+    while (1)
+      ;
+  }
+
+  // Air measure error Log
+  if (!status)
+  {
+    Serial.println("Could not find a valid BME280 sensor, check wiring!");
+    while (1)
+      ;
+  }
+
   // Ultrasonic Setup
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(echoPin, INPUT);  // Sets the echoPin as an Input
