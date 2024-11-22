@@ -5,7 +5,7 @@
 
 /* PIN
 Light Pin & Air Pin: SDA-21 SCL-22
-Moist Meter: 15
+Moist Meter: 32
 Ultrasonic Pin: trig-5 echo-18
 */
 
@@ -19,7 +19,7 @@ unsigned long delayTime;
 
 // Moist Meter
 int _moisture, sensor_analog;
-int sensor_pin = 15;
+int sensor_pin = 32;
 
 // Ultrasonic
 const int trigPin = 5;

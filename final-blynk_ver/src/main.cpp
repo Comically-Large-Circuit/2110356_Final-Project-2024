@@ -14,6 +14,12 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 
+/* PIN
+Light Pin & Air Pin: SDA-21 SCL-22
+Moist Meter: 32
+Ultrasonic Pin: trig-5 echo-18
+*/
+
 // Your WiFi credentials.
 // Set password to "" for open networks.
 char ssid[] = "thamva";
@@ -28,7 +34,7 @@ Adafruit_BME280 bme; // I2C
 
 // Moist Meter
 int _moisture, sensor_analog;
-int sensor_pin = 15;
+int sensor_pin = 32;
 
 // Ultrasonic
 const int trigPin = 5;
@@ -112,6 +118,7 @@ void printMoistMeter()
 }
 
 // This function is called every time the Virtual Pin 0 state changes
+static int timerID = -1;
 BLYNK_WRITE(V0)
 {
   // Set incoming value from pin V0 to a variable
@@ -122,22 +129,27 @@ BLYNK_WRITE(V0)
   if (value == 1)
   {
     // Start a timer to read sensor values periodically
-    timer.setInterval(1000L, []()
-                      {
+    if (timerID != -1)
+    {
+      timer.deleteTimer(timerID);
+    }
+    timerID = timer.setInterval(1000L, []()
+                                {
       printAirValues();
       printUltraSonicValues();
+      printMoistMeter();
       Blynk.virtualWrite(V4, 30 - distanceCm);
       Blynk.virtualWrite(V5, printLightValues());
       Blynk.virtualWrite(V6, _moisture);
       Blynk.virtualWrite(V7, bme.readHumidity());
       Blynk.virtualWrite(V8, bme.readTemperature());
-      printMoistMeter();
       Serial.println(""); });
   }
-  else
+  else if (timerID != -1)
   {
     // Stop the timer if value is not 1
-    // timer.deleteTimer();
+    timer.deleteTimer(timerID);
+    timerID = -1;
   }
 }
 
@@ -192,6 +204,9 @@ void setup()
   // Ultrasonic Setup
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(echoPin, INPUT);  // Sets the echoPin as an Input
+
+  // Moisture sensor setup
+  pinMode(sensor_pin, INPUT);
 
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
   // You can also specify server:
