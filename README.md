@@ -19,3 +19,24 @@ This repository contains the final project for ...
 ├── tests/
 │   ├── xdxd
 ├── README.md        
+
+```
+## ESP32 Pin for Sensor
+| GPIO Pin | Sensor | Type |
+| :------- | :------- | :------- |
+| GPIO 21 | BH1750 | Light Sensor |
+| GPIO 22 | BH1750 | Light Sensor |
+| GPIO 21 | BME280 | Humidity Sensor |
+| GPIO 22 | BME280 | Humidity Sensor |
+| GPIO 15 | ||
+
+## Virtual Pin for Blynk
+
+| Virtual Pin | Sensor | Value |
+| :------- | :------- | :------- |
+| PIN V4 | | Water Level |
+| PIN V5 | | Light Level |
+| PIN V6 | | Moist Level |
+| PIN V7 | | Humidity Level |
+| PIN V8 | | Temperature |
+| PIN V9 | | Pump State |
