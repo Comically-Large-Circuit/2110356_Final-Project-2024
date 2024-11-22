@@ -41,18 +41,18 @@ const int button_pump = 34;
 const int Pump_Output = 33;
 
 unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
-unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+unsigned long debounceDelay = 100;    // the debounce time; increase if the output flickers
 
 int buttonState;            // the current reading from the input pin
 int lastButtonState = LOW;
 int reading;
+// Add a global variable to track pump status
+
 void pourWater(){
-  digitalWrite(Pump_Output, HIGH);
   unsigned long startMillis = millis();
   Serial.println("Pumping water ...");
-  while (millis() - startMillis < 5000) {
-    // wait for 1 second
-  }
+  digitalWrite(Pump_Output, HIGH);
+  while (millis() - startMillis < 5000);
   digitalWrite(Pump_Output, LOW);
   Serial.println("Water pumped");
 }
@@ -66,6 +66,7 @@ void pumpControl(){
     if (reading != buttonState) {
       buttonState = reading;
       if(buttonState == HIGH){
+        Serial.println("Button pressed");
         pourWater();
       }
     } 
@@ -271,9 +272,9 @@ void setup()
 void loop()
 {
   // printMoistMeter();
-  pumpControl();
   Blynk.run();
   timer.run();
+  pumpControl();
   // You can inject your own code or combine it with other sketches.
   // Check other examples on how to communicate with Blynk. Remember
   // to avoid delay() function!
