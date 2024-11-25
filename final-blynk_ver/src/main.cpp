@@ -36,46 +36,50 @@ Adafruit_BME280 bme; // I2C
 int _moisture, sensor_analog;
 int sensor_pin = 32;
 
-// Water pump button 
+// Water pump button
 const int button_pump = 34;
 const int Pump_Output = 33;
 
-unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
-unsigned long debounceDelay = 100;    // the debounce time; increase if the output flickers
+unsigned long lastDebounceTime = 0; // the last time the output pin was toggled
+unsigned long debounceDelay = 100;  // the debounce time; increase if the output flickers
 
-int buttonState;            // the current reading from the input pin
+int buttonState; // the current reading from the input pin
 int lastButtonState = LOW;
 int reading;
 // Add a global variable to track pump status
 
-void pourWater(){
+void pourWater()
+{
   unsigned long startMillis = millis();
   Serial.println("Pumping water ...");
   digitalWrite(Pump_Output, HIGH);
-  while (millis() - startMillis < 5000);
+  while (millis() - startMillis < 5000)
+    ;
   digitalWrite(Pump_Output, LOW);
   Serial.println("Water pumped");
 }
 
-void pumpControl(){  
+void pumpControl()
+{
   reading = digitalRead(button_pump);
-  if (reading != lastButtonState) {
+  if (reading != lastButtonState)
+  {
     lastDebounceTime = millis();
   }
-  if ((millis() - lastDebounceTime) > debounceDelay) {
-    if (reading != buttonState) {
+  if ((millis() - lastDebounceTime) > debounceDelay)
+  {
+    if (reading != buttonState)
+    {
       buttonState = reading;
-      if(buttonState == HIGH){
+      if (buttonState == HIGH)
+      {
         Serial.println("Button pressed");
         pourWater();
       }
-    } 
+    }
   }
   lastButtonState = reading;
 }
-
-
-
 
 // Ultrasonic
 const int trigPin = 5;
@@ -163,12 +167,20 @@ void printMoistMeter()
 
 // This function is called every time the Virtual Pin 0 state changes
 static int timerID = -1;
-BLYNK_WRITE(V9) {
+BLYNK_WRITE(V9)
+{
   int value = param.asInt();
-  if (value == 1) {
-    pourWater(); // Call the function to perform the action
+  if (value == 1)
+  {
+    pourWater();               // Call the function to perform the action
     Blynk.virtualWrite(V9, 0); // Reset the virtual pin state to 0
   }
+}
+
+BLYNK_WRITE(V10)
+{
+  // Camera URL
+  Blynk.virtualWrite(V10, "http://" + my_Local_IP + "/capture");
 }
 
 BLYNK_WRITE(V0)
@@ -212,7 +224,7 @@ BLYNK_CONNECTED()
   Blynk.setProperty(V3, "offImageUrl", "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations.png");
   Blynk.setProperty(V3, "onImageUrl", "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations_pressed.png");
   Blynk.setProperty(V3, "url", "https://docs.blynk.io/en/getting-started/what-do-i-need-to-blynk/how-quickstart-device-was-made");
-  Blynk.setProperty(V10, "urls", "http://"+my_Local_IP+"/capture");
+  Blynk.setProperty(V10, "url", "http://" + my_Local_IP + "/stream");
 }
 
 // This function sends Arduino's uptime every second to Virtual Pin 2.
@@ -232,8 +244,6 @@ void setup()
   // Pump
   pinMode(button_pump, INPUT);
   pinMode(Pump_Output, OUTPUT);
-  
-  
 
   // setup for air measuring
   bool status;
@@ -275,6 +285,7 @@ void setup()
   timer = BlynkTimer();
   // Camera Local IP
   my_Local_IP = WiFi.localIP().toString();
+  Serial.println(my_Local_IP);
 }
 
 void loop()
