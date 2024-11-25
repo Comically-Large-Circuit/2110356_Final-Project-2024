@@ -220,11 +220,15 @@ BLYNK_WRITE(V0)
 // This function is called every time the device is connected to the Blynk.Cloud
 BLYNK_CONNECTED()
 {
+  my_Local_IP = WiFi.localIP().toString();
+  Serial.println("BLYNK_CONNECTED called");
+  Serial.print("Setting V10 URL: ");
+  Serial.println("http://" + my_Local_IP + "/capture");
   // Change Web Link Button message to "Congratulations!"
   Blynk.setProperty(V3, "offImageUrl", "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations.png");
   Blynk.setProperty(V3, "onImageUrl", "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations_pressed.png");
   Blynk.setProperty(V3, "url", "https://docs.blynk.io/en/getting-started/what-do-i-need-to-blynk/how-quickstart-device-was-made");
-  Blynk.setProperty(V10, "url", "http://" + my_Local_IP + "/stream");
+  Blynk.setProperty(V10, "url", "http://" + my_Local_IP + "/capture");
 }
 
 // This function sends Arduino's uptime every second to Virtual Pin 2.
