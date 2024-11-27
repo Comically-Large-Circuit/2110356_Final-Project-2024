@@ -17,6 +17,8 @@
 #include <webserverhandler.h>
 #include <sensor.h>
 #include <pump.h>
+#include <HTTPClient.h>
+
 
 /* PIN
 Light Pin & Air Pin: SDA-21 SCL-22
@@ -128,9 +130,9 @@ BLYNK_WRITE(V0)
       Blynk.virtualWrite(V8, bme.readTemperature());
       String sensor_data = "{\"Temperature\":" + String(bme.readTemperature()) 
       + ", \"Humidity\":" + String(bme.readHumidity()) 
-      + ", \"Moisture\":" + String(_moisture) 
-      + ", \"Light\":" + String(printLightValues()) 
-      + ", \"Water Level\":" + String(30 - distanceCm) + "}";
+      + ", \"Moisture\":" + String(readMoistureSensor(sensor_pin)) 
+      + ", \"Light\":" + String(readLightSensor(lightMeter)) 
+      + ", \"Water Level\":" + String(30 - readUltrasonicSensor(trigPin, echoPin)) + "}";
       sendDataToScript("ESP32_01", sensor_data);
       Serial.println(""); });
   }
