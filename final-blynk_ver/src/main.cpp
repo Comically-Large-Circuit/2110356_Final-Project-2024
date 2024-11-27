@@ -102,8 +102,11 @@ BLYNK_WRITE(V10)
   Blynk.virtualWrite(V10, "http://" + my_Local_IP + "/capture");
 }
 
+
+
 BLYNK_WRITE(V0)
 {
+  Blynk.setProperty(V12, "url", "https://lh3.googleusercontent.com/d/1JRyhOmu8z8nJ4FFcKZjX3eSAlwedLZhL" );
   // Set incoming value from pin V0 to a variable
   int value = param.asInt();
 
