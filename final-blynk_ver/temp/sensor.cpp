@@ -3,10 +3,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 #include <Arduino.h>
-
-#define SEALEVELPRESSURE_HPA (1013.25)
-#define SOUND_SPEED 0.034
-#define CM_TO_INCH 0.393701
+#include <sensor.h>
 
 void initLightSensor(BH1750 &lightMeter)
 {
@@ -48,7 +45,7 @@ void initAirSensor(Adafruit_BME280 &bme)
   }
 }
 
-float readAirSensor(Adafruit_BME280 &bme)
+void readAirSensor(Adafruit_BME280 &bme)
 {
   Serial.print("Temperature = ");
   Serial.print(bme.readTemperature());
@@ -67,13 +64,13 @@ float readAirSensor(Adafruit_BME280 &bme)
   Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
 }
 
-void initUltrasonic(int trigPin, int echoPin)
+void initUltrasonicSensor(int trigPin, int echoPin)
 {
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(echoPin, INPUT);  // Sets the echoPin as an Input
 }
 
-float readUltrasonic(int trigPin, int echoPin)
+float readUltrasonicSensor(int trigPin, int echoPin)
 {
   long duration;
   float distanceCm;
@@ -110,8 +107,4 @@ int readMoistureSensor(int sensor_pin)
   return sensor_analog;
 }
 
-float printUltraSonicValues(int trigPin, int echoPin)
-{
-  return readUltrasonic(trigPin, echoPin);
-}
 

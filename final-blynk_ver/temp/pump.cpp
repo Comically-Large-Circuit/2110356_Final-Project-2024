@@ -6,6 +6,11 @@ int buttonState = LOW;
 int lastButtonState = LOW;
 
 int pumpPinGlobal = 33;
+
+bool isPumping = false;
+unsigned long pumpStartTime = 0;
+unsigned long pumpDuration = 5000; 
+
 void initPump(int buttonPin, int pumpPin)
 {
     pinMode(buttonPin, INPUT);
@@ -16,9 +21,7 @@ void initPump(int buttonPin, int pumpPin)
 }
 
 
-bool isPumping = false;
-unsigned long pumpStartTime = 0;
-unsigned long pumpDuration = 5000; 
+
 void startPump(){
     if (!isPumping){
         isPumping = true;
@@ -47,7 +50,7 @@ void pumpControl(int buttonPin, int pumpPin){
 }
 
 //check pump status if it passed 5 seconds
-void handlePumpState(long inputPumpDuration){
+void handlePumpState(unsigned long inputPumpDuration){
     pumpDuration = inputPumpDuration;
 
     if (isPumping && millis() - pumpStartTime > pumpDuration){

@@ -13,10 +13,11 @@
 #include <BH1750.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
+#include <webserver.h>
 
-#include "webserver.cpp"
-#include "sensor.cpp"
-#include "pump.cpp"
+#include <webserverhandler.h>
+#include <sensor.h>
+#include <pump.h>
 
 /* PIN
 Light Pin & Air Pin: SDA-21 SCL-22
@@ -39,6 +40,17 @@ unsigned long pump_duration = 5000;
 String my_Local_IP;
 
 BlynkTimer timer;
+
+// Light Meter
+BH1750 lightMeter;
+// Air Measure
+Adafruit_BME280 bme; // I2C
+// Moist Meter
+int _moisture;
+int sensor_pin = 32;
+// Ultrasonic
+const int trigPin = 5;
+const int echoPin = 18;
 
 
 // This function is called every time the Virtual Pin 0 state changes
@@ -76,9 +88,9 @@ BLYNK_WRITE(V0)
     timerID = timer.setInterval(1000L, []()
                                 {
       readAirSensor(bme);
-      Serial.println(30-readUltrasonic(trigPin, echoPin));
+      Serial.println(30-readUltrasonicSensor(trigPin, echoPin));
       Serial.println(readMoistureSensor(sensor_pin));
-      Blynk.virtualWrite(V4, 30-readUltrasonic(trigPin, echoPin));
+      Blynk.virtualWrite(V4, 30-readUltrasonicSensor(trigPin, echoPin));
       Blynk.virtualWrite(V5, readLightSensor(lightMeter));
       Blynk.virtualWrite(V6, readMoistureSensor(sensor_pin));
       Blynk.virtualWrite(V7, bme.readHumidity());
@@ -115,16 +127,7 @@ BLYNK_CONNECTED()
 //   Blynk.virtualWrite(V2, millis() / 1000);
 // }
 
-// Light Meter
-BH1750 lightMeter;
-// Air Measure
-Adafruit_BME280 bme; // I2C
-// Moist Meter
-int _moisture;
-int sensor_pin = 32;
-// Ultrasonic
-const int trigPin = 5;
-const int echoPin = 18;
+
 
 
 void setup()
@@ -136,7 +139,7 @@ void setup()
   initLightSensor(lightMeter);
   initAirSensor(bme);
   initMoistureSensor(sensor_pin);
-  initUltrasonic(trigPin, echoPin);
+  initUltrasonicSensor(trigPin, echoPin);
 
 
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
@@ -149,8 +152,9 @@ void setup()
   // Camera Local IP
   my_Local_IP = WiFi.localIP().toString();
   Serial.println(my_Local_IP);
-
+  
   setupWebServer();
+  initPump(34,33);
 }
 
 void loop()
