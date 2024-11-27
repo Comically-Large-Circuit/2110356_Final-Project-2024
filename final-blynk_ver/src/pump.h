@@ -6,7 +6,7 @@
 // Function declarations
 void initPump(int buttonPin, int pumpPin);
 void startPump();
-void pumpControl(int buttonPin, int pumpPin);
-void handlePumpState(unsigned long inputPumpDuration);
+void pumpControl(int buttonPin, int pumpPin, int pump_duration);
+void handlePumpState();
 
 #endif

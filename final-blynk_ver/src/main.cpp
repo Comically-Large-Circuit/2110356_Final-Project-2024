@@ -1,8 +1,7 @@
 /* Fill-in information from Blynk Device Info here */
-#define BLYNK_TEMPLATE_ID "TMPL6DRQnlCVV"
-#define BLYNK_TEMPLATE_NAME "Quickstart Template"
-#define BLYNK_AUTH_TOKEN "N2RLZVdZPFcRUmLivGbA-RGi4aY1ssoc"
-
+#define BLYNK_TEMPLATE_ID "TMPL6SVHsqtvX"
+#define BLYNK_TEMPLATE_NAME "Plantae"
+#define BLYNK_AUTH_TOKEN "TKyUxAz6PQaSKeUSOeuB6yXqr9wpm3MK"
 /* Comment this out to disable prints and save space */
 #define BLYNK_PRINT Serial
 
@@ -46,7 +45,7 @@ BH1750 lightMeter;
 // Air Measure
 Adafruit_BME280 bme; // I2C
 // Moist Meter
-int _moisture;
+// int _moisture;
 int sensor_pin = 32;
 // Ultrasonic
 const int trigPin = 5;
@@ -88,9 +87,9 @@ BLYNK_WRITE(V0)
     timerID = timer.setInterval(1000L, []()
                                 {
       readAirSensor(bme);
-      Serial.println(30-readUltrasonicSensor(trigPin, echoPin));
-      Serial.println(readMoistureSensor(sensor_pin));
-      Blynk.virtualWrite(V4, 30-readUltrasonicSensor(trigPin, echoPin));
+      // Serial.println(30-readUltrasonicSensor(trigPin, echoPin));
+      // Serial.println(readMoistureSensor(sensor_pin));
+      Blynk.virtualWrite(V4, readUltrasonicSensor(trigPin, echoPin));
       Blynk.virtualWrite(V5, readLightSensor(lightMeter));
       Blynk.virtualWrite(V6, readMoistureSensor(sensor_pin));
       Blynk.virtualWrite(V7, bme.readHumidity());
@@ -154,7 +153,7 @@ void setup()
   Serial.println(my_Local_IP);
   
   setupWebServer();
-  initPump(34,33);
+  initPump(button_pump, Pump_Output);
 }
 
 void loop()
@@ -163,8 +162,9 @@ void loop()
   Blynk.run();
   timer.run();
   handleWebServer();
-  pumpControl(button_pump, Pump_Output);
-  handlePumpState(pump_duration);
+  pumpControl(button_pump, Pump_Output, pump_duration);
+
+ 
   // You can inject your own code or combine it with other sketches.
   // Check other examples on how to communicate with Blynk. Remember
   // to avoid delay() function!

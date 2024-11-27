@@ -9,12 +9,12 @@ void initLightSensor(BH1750 &lightMeter)
 {
   if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE))
   {
-    // Serial.println(F("BH1750 initialized"));
+    Serial.println(F("BH1750 initialized"));
   }
   else
   {
     Serial.println(F("Error initializing BH1750"));
-    while (1);
+    // while (1);
   }
 }
 
@@ -41,7 +41,7 @@ void initAirSensor(Adafruit_BME280 &bme)
   if (!status)
   {
     Serial.println("Could not find a valid BME280 sensor, check wiring!");
-    while (1);
+    // while (1);
   }
 }
 
@@ -61,7 +61,7 @@ void readAirSensor(Adafruit_BME280 &bme)
   Serial.println(" hPa");
 
   Serial.print("Approx. Altitude = ");
-  Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
+  Serial.println(bme.readAltitude(SEALEVELPRESSURE_HPA));
 }
 
 void initUltrasonicSensor(int trigPin, int echoPin)
@@ -88,10 +88,10 @@ float readUltrasonicSensor(int trigPin, int echoPin)
 
   Serial.print("Distance: ");
   Serial.print(distanceCm);
-  Serial.print(" cm ");
+  Serial.println(" cm ");
   Serial.print(distanceInch);
   Serial.println(" inch");
-  return distanceCm;
+  return (30-distanceCm);
 }
 
 void initMoistureSensor(int sensor_pin)
@@ -103,8 +103,9 @@ int readMoistureSensor(int sensor_pin)
 {
   int sensor_analog = analogRead(sensor_pin);
   Serial.print("Moisture: ");
-  Serial.println(sensor_analog);
-  return sensor_analog;
+  double _moisture = (100 - ((sensor_analog / 4095.00) * 100));
+  Serial.println(_moisture);
+  return _moisture;
 }
 
 
