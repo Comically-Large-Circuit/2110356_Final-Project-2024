@@ -51,6 +51,38 @@ int sensor_pin = 32;
 const int trigPin = 5;
 const int echoPin = 18;
 
+const char* script_url = "https://script.google.com/macros/s/1ap8vg0u8vPVmJ0xnaK0Zp4lGLwtQVO_vEGBlS0DIybUNXyniV4TGOiOt/exec"; // Replace with your Web App URL
+
+void sendDataToScript(String device_id, String sensor_data) {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+
+    // Start HTTP POST request
+    http.begin(script_url);
+    http.addHeader("Content-Type", "application/json");
+
+    // Prepare JSON payload
+    String payload = "{\"device_id\":\"" + device_id + "\", \"sensor_data\":\"" + sensor_data + "\"}";
+
+    // Send POST request
+    int httpResponseCode = http.POST(payload);
+
+    // Handle response
+    if (httpResponseCode > 0) {
+      String response = http.getString();
+      Serial.println("Response code: " + String(httpResponseCode));
+      Serial.println("Response: " + response);
+    } else {
+      Serial.println("Error sending POST request: " + http.errorToString(httpResponseCode));
+    }
+
+    http.end();
+  } else {
+    Serial.println("WiFi not connected");
+  }
+}
+
+
 
 // This function is called every time the Virtual Pin 0 state changes
 static int timerID = -1;
@@ -94,6 +126,12 @@ BLYNK_WRITE(V0)
       Blynk.virtualWrite(V6, readMoistureSensor(sensor_pin));
       Blynk.virtualWrite(V7, bme.readHumidity());
       Blynk.virtualWrite(V8, bme.readTemperature());
+      String sensor_data = "{\"Temperature\":" + String(bme.readTemperature()) 
+      + ", \"Humidity\":" + String(bme.readHumidity()) 
+      + ", \"Moisture\":" + String(_moisture) 
+      + ", \"Light\":" + String(printLightValues()) 
+      + ", \"Water Level\":" + String(30 - distanceCm) + "}";
+      sendDataToScript("ESP32_01", sensor_data);
       Serial.println(""); });
   }
   else if (timerID != -1)
