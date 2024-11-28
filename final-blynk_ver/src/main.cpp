@@ -19,7 +19,6 @@
 #include <pump.h>
 #include <HTTPClient.h>
 
-
 /* PIN
 Light Pin & Air Pin: SDA-21 SCL-22
 Moist Meter: 32
@@ -35,7 +34,6 @@ char pass[] = "123456789";
 const int button_pump = 34;
 const int Pump_Output = 33;
 unsigned long pump_duration = 5000;
-
 
 // Local IP Camera
 String my_Local_IP;
@@ -53,10 +51,12 @@ int sensor_pin = 32;
 const int trigPin = 5;
 const int echoPin = 18;
 
-const char* script_url = "https://script.google.com/macros/s/1ap8vg0u8vPVmJ0xnaK0Zp4lGLwtQVO_vEGBlS0DIybUNXyniV4TGOiOt/exec"; // Replace with your Web App URL
+const char *script_url = "https://script.google.com/macros/s/1ap8vg0u8vPVmJ0xnaK0Zp4lGLwtQVO_vEGBlS0DIybUNXyniV4TGOiOt/exec"; // Replace with your Web App URL
 
-void sendDataToScript(String device_id, String sensor_data) {
-  if (WiFi.status() == WL_CONNECTED) {
+void sendDataToScript(String device_id, String sensor_data)
+{
+  if (WiFi.status() == WL_CONNECTED)
+  {
     HTTPClient http;
 
     // Start HTTP POST request
@@ -70,21 +70,24 @@ void sendDataToScript(String device_id, String sensor_data) {
     int httpResponseCode = http.POST(payload);
 
     // Handle response
-    if (httpResponseCode > 0) {
+    if (httpResponseCode > 0)
+    {
       String response = http.getString();
       Serial.println("Response code: " + String(httpResponseCode));
       Serial.println("Response: " + response);
-    } else {
+    }
+    else
+    {
       Serial.println("Error sending POST request: " + http.errorToString(httpResponseCode));
     }
 
     http.end();
-  } else {
+  }
+  else
+  {
     Serial.println("WiFi not connected");
   }
 }
-
-
 
 // This function is called every time the Virtual Pin 0 state changes
 static int timerID = -1;
@@ -93,7 +96,7 @@ BLYNK_WRITE(V9)
   int value = param.asInt();
   if (value == 1)
   {
-    startPump();              // Call the function to perform the action
+    startPump();               // Call the function to perform the action
     Blynk.virtualWrite(V9, 0); // Reset the virtual pin state to 0
   }
 }
@@ -104,11 +107,9 @@ BLYNK_WRITE(V10)
   Blynk.virtualWrite(V10, "http://" + my_Local_IP + "/capture");
 }
 
-
-
 BLYNK_WRITE(V0)
 {
-  Blynk.setProperty(V12, "url", "https://lh3.googleusercontent.com/d/1JRyhOmu8z8nJ4FFcKZjX3eSAlwedLZhL" );
+  Blynk.setProperty(V12, "url", "https://lh3.googleusercontent.com/d/1JRyhOmu8z8nJ4FFcKZjX3eSAlwedLZhL");
   // Set incoming value from pin V0 to a variable
   int value = param.asInt();
 
@@ -138,6 +139,10 @@ BLYNK_WRITE(V0)
       + ", \"Water Level\":" + String(30 - readUltrasonicSensor(trigPin, echoPin)) + "}";
       sendDataToScript("ESP32_01", sensor_data);
       Serial.println(""); });
+    if (readUltrasonicSensor(trigPin, echoPin) < 10) // test notificaiton for water level
+    {
+      Blynk.logEvent("water_low");
+    }
   }
   else if (timerID != -1)
   {
@@ -169,9 +174,6 @@ BLYNK_CONNECTED()
 //   Blynk.virtualWrite(V2, millis() / 1000);
 // }
 
-
-
-
 void setup()
 {
   // Debug console
@@ -183,7 +185,6 @@ void setup()
   initMoistureSensor(sensor_pin);
   initUltrasonicSensor(trigPin, echoPin);
 
-
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
   // You can also specify server:
   // Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass, "blynk.cloud", 80);
@@ -194,7 +195,7 @@ void setup()
   // Camera Local IP
   my_Local_IP = WiFi.localIP().toString();
   Serial.println(my_Local_IP);
-  
+
   setupWebServer();
   initPump(button_pump, Pump_Output);
 }
@@ -207,7 +208,6 @@ void loop()
   handleWebServer();
   pumpControl(button_pump, Pump_Output, pump_duration);
 
- 
   // You can inject your own code or combine it with other sketches.
   // Check other examples on how to communicate with Blynk. Remember
   // to avoid delay() function!

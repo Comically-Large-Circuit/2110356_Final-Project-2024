@@ -1,5 +1,6 @@
 #include <WebServer.h>
 #include <webserverhandler.h>
+#include <WiFi.h>
 
 WebServer server(443);
 
