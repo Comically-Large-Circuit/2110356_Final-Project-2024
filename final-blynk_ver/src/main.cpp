@@ -18,6 +18,7 @@
 #include <sensor.h>
 #include <pump.h>
 #include <HTTPClient.h>
+#include <ArduinoJson.h>
 
 /* PIN
 Light Pin & Air Pin: SDA-21 SCL-22
@@ -51,10 +52,25 @@ int sensor_pin = 32;
 const int trigPin = 5;
 const int echoPin = 18;
 
-const char *script_url = "https://script.google.com/macros/s/1ap8vg0u8vPVmJ0xnaK0Zp4lGLwtQVO_vEGBlS0DIybUNXyniV4TGOiOt/exec"; // Replace with your Web App URL
+String createJsonPayload(String device_id, String sensor_data) {
+    StaticJsonDocument<200> doc;  // Define a JSON document with a capacity of 200 bytes
+
+    // Add key-value pairs to the JSON document
+    doc["device_id"] = device_id;
+    doc["sensor_data"] = sensor_data;
+
+    // Serialize the JSON document to a string
+    String payload;
+    serializeJson(doc, payload);
+
+    return payload;
+}
+
+const char *script_url = "https://script.google.com/macros/s/AKfycbxjq0TQcsNHzNjK3u_nbbBrfOUDqplaNy70eF113qxyp_tbK0pIe_DIAVaBAV84rJN1/exec"; // Replace with your Web App URL
 
 void sendDataToScript(String device_id, String sensor_data)
 {
+  Serial.println("Sending data to script");
   if (WiFi.status() == WL_CONNECTED)
   {
     HTTPClient http;
@@ -62,10 +78,22 @@ void sendDataToScript(String device_id, String sensor_data)
     // Start HTTP POST request
     http.begin(script_url);
     http.addHeader("Content-Type", "application/json");
+    // Enable redirect handling
+    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
 
-    // Prepare JSON payload
-    String payload = "{\"device_id\":\"" + device_id + "\", \"sensor_data\":\"" + sensor_data + "\"}";
+        // Prepare JSON payload
+        // String payload = "{\'device_id\':" + device_id + ", \'sensor_data\':" + sensor_data + "}";
+    StaticJsonDocument<200> doc;  // Define a JSON document with a capacity of 200 bytes
 
+    // Add key-value pairs to the JSON document
+    doc["device_id"] = device_id;
+    doc["sensor_data"] = sensor_data;
+
+    // Serialize the JSON document to a string
+    String payload;
+    serializeJson(doc, payload);
+
+    // String payload = createJsonPayload(device_id, sensor_data);
     // Send POST request
     int httpResponseCode = http.POST(payload);
 
@@ -132,17 +160,37 @@ BLYNK_WRITE(V0)
       Blynk.virtualWrite(V6, readMoistureSensor(sensor_pin));
       Blynk.virtualWrite(V7, bme.readHumidity());
       Blynk.virtualWrite(V8, bme.readTemperature());
-      String sensor_data = "{\"Temperature\":" + String(bme.readTemperature()) 
-      + ", \"Humidity\":" + String(bme.readHumidity()) 
-      + ", \"Moisture\":" + String(readMoistureSensor(sensor_pin)) 
-      + ", \"Light\":" + String(readLightSensor(lightMeter)) 
-      + ", \"Water Level\":" + String(30 - readUltrasonicSensor(trigPin, echoPin)) + "}";
+      // String sensor_data = "BAAM!";
+      StaticJsonDocument<200> doc2;  // Define a JSON document with a capacity of 200 bytes
+
+    // Add key-value pairs to the JSON document
+      doc2["Temperature"] = String(bme.readTemperature());
+      doc2["Humidity"] = String(bme.readHumidity());
+      doc2["Moisture"] = String(readMoistureSensor(sensor_pin));
+      doc2["Light"] = String(readLightSensor(lightMeter));
+      doc2["Water_Level"] = String(30 - readUltrasonicSensor(trigPin, echoPin));
+
+    // Serialize the JSON document to a string
+      String sensor_data;
+      serializeJson(doc2, sensor_data);
+      // String sensor_data = "{\'Temperature\':" + String(bme.readTemperature()) 
+      // + ", \'Humidity\':" + String(bme.readHumidity()) 
+      // + ", \'Moisture\':" + String(readMoistureSensor(sensor_pin)) 
+      // + ", \'Light\':" + String(readLightSensor(lightMeter)) 
+      // + ", \'Water_Level\':" + String(30 - readUltrasonicSensor(trigPin, echoPin)) + "}";
       sendDataToScript("ESP32_01", sensor_data);
-      Serial.println(""); });
-    if (readUltrasonicSensor(trigPin, echoPin) < 10) // test notificaiton for water level
+      
+      if (readUltrasonicSensor(trigPin, echoPin) < 10) // test notificaiton for water level
     {
       Blynk.logEvent("water_low");
+      Serial.println("Water level is low");
     }
+    else
+    {
+      Serial.println(readUltrasonicSensor(trigPin, echoPin));
+      Serial.println("Water level is normal");
+    }
+    Serial.println(""); });
   }
   else if (timerID != -1)
   {
