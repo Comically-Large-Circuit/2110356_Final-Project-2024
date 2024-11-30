@@ -28,8 +28,8 @@ Ultrasonic Pin: trig-5 echo-18
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
-char ssid[] = "thamva";
-char pass[] = "123456789";
+char ssid[] = "Pepega";
+char pass[] = "nithi123";
 
 // Water pump button
 const int button_pump = 34;
