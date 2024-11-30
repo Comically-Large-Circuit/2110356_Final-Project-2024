@@ -1,0 +1,8 @@
+# Ignore the virtual environment directory
+flask/env/
+
+# Ignore specific secret files
+flask/client_secrets.json
+flask/credentials.json
+
+.vscode

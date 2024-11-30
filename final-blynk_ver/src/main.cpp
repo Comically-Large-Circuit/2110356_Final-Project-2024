@@ -52,18 +52,30 @@ int sensor_pin = 32;
 const int trigPin = 5;
 const int echoPin = 18;
 
-String createJsonPayload(String device_id, String sensor_data) {
-    StaticJsonDocument<200> doc;  // Define a JSON document with a capacity of 200 bytes
+void triggerCapture() {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
 
-    // Add key-value pairs to the JSON document
-    doc["device_id"] = device_id;
-    doc["sensor_data"] = sensor_data;
+    // Replace with your Flask server's IP and port
+    String serverUrl = "http://127.0.0.1:5000/capture"; 
 
-    // Serialize the JSON document to a string
-    String payload;
-    serializeJson(doc, payload);
+    http.begin(serverUrl);
+    http.addHeader("Content-Type", "application/json"); // Optional if no payload
 
-    return payload;
+    int httpResponseCode = http.POST("{}"); // Empty JSON payload
+
+    if (httpResponseCode > 0) {
+      Serial.println("Response code: " + String(httpResponseCode));
+      String response = http.getString();
+      Serial.println("Response: " + response);
+    } else {
+      Serial.println("Error sending POST request: " + http.errorToString(httpResponseCode));
+    }
+
+    http.end();
+  } else {
+    Serial.println("WiFi not connected");
+  }
 }
 
 const char *script_url = "https://script.google.com/macros/s/AKfycbxjq0TQcsNHzNjK3u_nbbBrfOUDqplaNy70eF113qxyp_tbK0pIe_DIAVaBAV84rJN1/exec"; // Replace with your Web App URL
@@ -114,6 +126,18 @@ void sendDataToScript(String device_id, String sensor_data)
   else
   {
     Serial.println("WiFi not connected");
+  }
+}
+
+
+BLYNK_WRITE(V13)
+{
+  int value = param.asInt();
+  if (value == 1)
+  {
+    Serial.println("Triggering Flask capture API...");
+    triggerCapture();               // Call the function to perform the action
+    Blynk.virtualWrite(V13, 0); // Reset the virtual pin state to 0
   }
 }
 
@@ -190,7 +214,9 @@ BLYNK_WRITE(V0)
       Serial.println(readUltrasonicSensor(trigPin, echoPin));
       Serial.println("Water level is normal");
     }
-    Serial.println(""); });
+    Serial.println(""); 
+    
+    });
   }
   else if (timerID != -1)
   {

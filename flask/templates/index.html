@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Transmission</title>
+</head>
+<body>
+    <h1>Live Feed</h1>
+    <img src="/video_feed" style="width: 100%; max-width: 600px;" alt="Live feed">
+    <button onclick="captureImage()">Capture and Upload</button>
+
+    <script>
+        function captureImage() {
+            fetch('/capture', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => alert(data.message))
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
