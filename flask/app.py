@@ -67,6 +67,7 @@ def index():
 @app.route('/capture', methods=['POST'])
 def capture():
     """Endpoint to capture an image and upload it to Google Drive."""
+    print('aaaa')
     frame = capture_frame()
     local_file_path = file_name
     cv2.imwrite(local_file_path, frame)

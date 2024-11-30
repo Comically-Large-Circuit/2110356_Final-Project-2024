@@ -52,28 +52,37 @@ int sensor_pin = 32;
 const int trigPin = 5;
 const int echoPin = 18;
 
-void triggerCapture() {
-  if (WiFi.status() == WL_CONNECTED) {
+void triggerCapture()
+{
+  if (WiFi.status() == WL_CONNECTED)
+  {
     HTTPClient http;
 
     // Replace with your Flask server's IP and port
-    String serverUrl = "http://127.0.0.1:5000/capture"; 
+    String serverUrl = "http://192.168.202.243:5000/capture";
 
     http.begin(serverUrl);
     http.addHeader("Content-Type", "application/json"); // Optional if no payload
+    http.addHeader("Connection", "keep-alive");
+    http.setTimeout(10000);
 
     int httpResponseCode = http.POST("{}"); // Empty JSON payload
 
-    if (httpResponseCode > 0) {
+    if (httpResponseCode > 0)
+    {
       Serial.println("Response code: " + String(httpResponseCode));
       String response = http.getString();
       Serial.println("Response: " + response);
-    } else {
+    }
+    else
+    {
       Serial.println("Error sending POST request: " + http.errorToString(httpResponseCode));
     }
 
     http.end();
-  } else {
+  }
+  else
+  {
     Serial.println("WiFi not connected");
   }
 }
@@ -93,9 +102,9 @@ void sendDataToScript(String device_id, String sensor_data)
     // Enable redirect handling
     http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
 
-        // Prepare JSON payload
-        // String payload = "{\'device_id\':" + device_id + ", \'sensor_data\':" + sensor_data + "}";
-    StaticJsonDocument<200> doc;  // Define a JSON document with a capacity of 200 bytes
+    // Prepare JSON payload
+    // String payload = "{\'device_id\':" + device_id + ", \'sensor_data\':" + sensor_data + "}";
+    StaticJsonDocument<200> doc; // Define a JSON document with a capacity of 200 bytes
 
     // Add key-value pairs to the JSON document
     doc["device_id"] = device_id;
@@ -129,14 +138,13 @@ void sendDataToScript(String device_id, String sensor_data)
   }
 }
 
-
 BLYNK_WRITE(V13)
 {
   int value = param.asInt();
   if (value == 1)
   {
     Serial.println("Triggering Flask capture API...");
-    triggerCapture();               // Call the function to perform the action
+    triggerCapture();           // Call the function to perform the action
     Blynk.virtualWrite(V13, 0); // Reset the virtual pin state to 0
   }
 }
@@ -176,47 +184,45 @@ BLYNK_WRITE(V0)
     }
     timerID = timer.setInterval(1000L, []()
                                 {
-      readAirSensor(bme);
-      // Serial.println(30-readUltrasonicSensor(trigPin, echoPin));
-      // Serial.println(readMoistureSensor(sensor_pin));
-      Blynk.virtualWrite(V4, readUltrasonicSensor(trigPin, echoPin));
-      Blynk.virtualWrite(V5, readLightSensor(lightMeter));
-      Blynk.virtualWrite(V6, readMoistureSensor(sensor_pin));
-      Blynk.virtualWrite(V7, bme.readHumidity());
-      Blynk.virtualWrite(V8, bme.readTemperature());
-      // String sensor_data = "BAAM!";
-      StaticJsonDocument<200> doc2;  // Define a JSON document with a capacity of 200 bytes
+                                  readAirSensor(bme);
+                                  // Serial.println(30-readUltrasonicSensor(trigPin, echoPin));
+                                  // Serial.println(readMoistureSensor(sensor_pin));
+                                  Blynk.virtualWrite(V4, readUltrasonicSensor(trigPin, echoPin));
+                                  Blynk.virtualWrite(V5, readLightSensor(lightMeter));
+                                  Blynk.virtualWrite(V6, readMoistureSensor(sensor_pin));
+                                  Blynk.virtualWrite(V7, bme.readHumidity());
+                                  Blynk.virtualWrite(V8, bme.readTemperature());
+                                  // String sensor_data = "BAAM!";
+                                  StaticJsonDocument<200> doc2; // Define a JSON document with a capacity of 200 bytes
 
-    // Add key-value pairs to the JSON document
-      doc2["Temperature"] = String(bme.readTemperature());
-      doc2["Humidity"] = String(bme.readHumidity());
-      doc2["Moisture"] = String(readMoistureSensor(sensor_pin));
-      doc2["Light"] = String(readLightSensor(lightMeter));
-      doc2["Water_Level"] = String(30 - readUltrasonicSensor(trigPin, echoPin));
+                                  // Add key-value pairs to the JSON document
+                                  doc2["Temperature"] = String(bme.readTemperature());
+                                  doc2["Humidity"] = String(bme.readHumidity());
+                                  doc2["Moisture"] = String(readMoistureSensor(sensor_pin));
+                                  doc2["Light"] = String(readLightSensor(lightMeter));
+                                  doc2["Water_Level"] = String(30 - readUltrasonicSensor(trigPin, echoPin));
 
-    // Serialize the JSON document to a string
-      String sensor_data;
-      serializeJson(doc2, sensor_data);
-      // String sensor_data = "{\'Temperature\':" + String(bme.readTemperature()) 
-      // + ", \'Humidity\':" + String(bme.readHumidity()) 
-      // + ", \'Moisture\':" + String(readMoistureSensor(sensor_pin)) 
-      // + ", \'Light\':" + String(readLightSensor(lightMeter)) 
-      // + ", \'Water_Level\':" + String(30 - readUltrasonicSensor(trigPin, echoPin)) + "}";
-      sendDataToScript("ESP32_01", sensor_data);
-      
-      if (readUltrasonicSensor(trigPin, echoPin) < 10) // test notificaiton for water level
-    {
-      Blynk.logEvent("water_low");
-      Serial.println("Water level is low");
-    }
-    else
-    {
-      Serial.println(readUltrasonicSensor(trigPin, echoPin));
-      Serial.println("Water level is normal");
-    }
-    Serial.println(""); 
-    
-    });
+                                  // Serialize the JSON document to a string
+                                  String sensor_data;
+                                  serializeJson(doc2, sensor_data);
+                                  // String sensor_data = "{\'Temperature\':" + String(bme.readTemperature())
+                                  // + ", \'Humidity\':" + String(bme.readHumidity())
+                                  // + ", \'Moisture\':" + String(readMoistureSensor(sensor_pin))
+                                  // + ", \'Light\':" + String(readLightSensor(lightMeter))
+                                  // + ", \'Water_Level\':" + String(30 - readUltrasonicSensor(trigPin, echoPin)) + "}";
+                                  sendDataToScript("ESP32_01", sensor_data);
+
+                                  if (readUltrasonicSensor(trigPin, echoPin) < 10) // test notificaiton for water level
+                                  {
+                                    Blynk.logEvent("water_low");
+                                    Serial.println("Water level is low");
+                                  }
+                                  else
+                                  {
+                                    Serial.println(readUltrasonicSensor(trigPin, echoPin));
+                                    Serial.println("Water level is normal");
+                                  }
+                                  Serial.println(""); });
   }
   else if (timerID != -1)
   {
