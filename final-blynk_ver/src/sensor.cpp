@@ -91,7 +91,7 @@ float readUltrasonicSensor(int trigPin, int echoPin)
   Serial.println(" cm ");
   Serial.print(distanceInch);
   Serial.println(" inch");
-  return (30-distanceCm);
+  return (((17.0 - distanceCm )*100) / 11.0);
 }
 
 void initMoistureSensor(int sensor_pin)
@@ -107,5 +107,3 @@ int readMoistureSensor(int sensor_pin)
   Serial.println(_moisture);
   return _moisture;
 }
-
-

@@ -200,7 +200,7 @@ BLYNK_WRITE(V0)
                                   doc2["Humidity"] = String(bme.readHumidity());
                                   doc2["Moisture"] = String(readMoistureSensor(sensor_pin));
                                   doc2["Light"] = String(readLightSensor(lightMeter));
-                                  doc2["Water_Level"] = String(30 - readUltrasonicSensor(trigPin, echoPin));
+                                  doc2["Water_Level"] = String((17 - (readUltrasonicSensor(trigPin, echoPin)/13))/100);
 
                                   // Serialize the JSON document to a string
                                   String sensor_data;
@@ -212,10 +212,12 @@ BLYNK_WRITE(V0)
                                   // + ", \'Water_Level\':" + String(30 - readUltrasonicSensor(trigPin, echoPin)) + "}";
                                   sendDataToScript("ESP32_01", sensor_data);
 
-                                  if (readUltrasonicSensor(trigPin, echoPin) < 10) // test notificaiton for water level
+                                  if (readUltrasonicSensor(trigPin, echoPin) < 15) // test notificaiton for water level
                                   {
                                     Blynk.logEvent("water_low");
-                                    Serial.println("Water level is low");
+                                    Serial.print("Water level is at ");
+                                    Serial.print(readUltrasonicSensor(trigPin, echoPin));
+                                    Serial.println("%");
                                   }
                                   else
                                   {
