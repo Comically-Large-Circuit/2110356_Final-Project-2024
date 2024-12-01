@@ -1,7 +1,7 @@
 /* Fill-in information from Blynk Device Info here */
-#define BLYNK_TEMPLATE_ID "TMPL6SVHsqtvX"
-#define BLYNK_TEMPLATE_NAME "Plantae"
-#define BLYNK_AUTH_TOKEN "TKyUxAz6PQaSKeUSOeuB6yXqr9wpm3MK"
+#define BLYNK_TEMPLATE_ID "TMPL626pTvfVE"
+#define BLYNK_TEMPLATE_NAME "Tree"
+#define BLYNK_AUTH_TOKEN "HiFFXZolAHaPiIOnRxt3r47d66ciz5Y0"
 /* Comment this out to disable prints and save space */
 #define BLYNK_PRINT Serial
 
@@ -28,8 +28,8 @@ Ultrasonic Pin: trig-5 echo-18
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
-char ssid[] = "Pepega";
-char pass[] = "nithi123";
+char ssid[] = "thamva";
+char pass[] = "123456789";
 
 // Water pump button
 const int button_pump = 34;
@@ -52,6 +52,8 @@ int sensor_pin = 32;
 const int trigPin = 5;
 const int echoPin = 18;
 
+const int moistureThreshold = 0;
+
 void triggerCapture()
 {
   if (WiFi.status() == WL_CONNECTED)
@@ -59,7 +61,7 @@ void triggerCapture()
     HTTPClient http;
 
     // Replace with your Flask server's IP and port
-    String serverUrl = "http://192.168.202.243:5000/capture";
+    String serverUrl = "http://192.168.22.243:5000/capture";
 
     http.begin(serverUrl);
     http.addHeader("Content-Type", "application/json"); // Optional if no payload
@@ -182,7 +184,7 @@ BLYNK_WRITE(V0)
     {
       timer.deleteTimer(timerID);
     }
-    timerID = timer.setInterval(1000L, []()
+    timerID = timer.setInterval(2000L, []()
                                 {
                                   readAirSensor(bme);
                                   // Serial.println(30-readUltrasonicSensor(trigPin, echoPin));
@@ -256,6 +258,18 @@ BLYNK_CONNECTED()
 //   Blynk.virtualWrite(V2, millis() / 1000);
 // }
 
+void checkSoilMoisture()
+{
+  int moistureLevel = readMoistureSensor(sensor_pin);
+  Serial.print("Soil moisture level: ");
+  Serial.println(moistureLevel);
+
+  if (moistureLevel <= moistureThreshold)
+  {
+    startPump(); // Optional: Log to Blynk
+  }
+}
+
 void setup()
 {
   // Debug console
@@ -289,6 +303,7 @@ void loop()
   timer.run();
   handleWebServer();
   pumpControl(button_pump, Pump_Output, pump_duration);
+  handlePumpState();
 
   // You can inject your own code or combine it with other sketches.
   // Check other examples on how to communicate with Blynk. Remember

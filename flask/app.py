@@ -9,7 +9,7 @@ import os
 app = Flask(__name__)
 
 # Camera URL
-url = 'http://192.168.202.15/capture'
+url = 'http://192.168.22.15/capture'
 
 # Authenticate with Google Drive
 gauth = GoogleAuth()
