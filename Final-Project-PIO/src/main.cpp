@@ -9,6 +9,79 @@ Moist Meter: 32
 Ultrasonic Pin: trig-5 echo-18
 */
 
+//Water pump
+#define PUMP_PIN 33
+#define BUTTON_PIN 34
+unsigned long lastDebounceTime = 0;  // Fixed typo in variable name
+unsigned long debounceDelay = 100;
+int buttonState = LOW;
+int lastButtonState = LOW;
+
+int pumpPinGlobal = 33;
+
+bool isPumping = false;
+unsigned long pumpStartTime = 0;
+unsigned long pumpDuration = 5000; // Default to 5 seconds
+
+void initPump(int buttonPin, int pumpPin)
+{
+    pinMode(buttonPin, INPUT);
+    pinMode(pumpPin, OUTPUT);
+    digitalWrite(pumpPin, LOW);
+
+    pumpPinGlobal = pumpPin;
+}
+
+void startPump()
+{
+    if (!isPumping)
+    {
+        isPumping = true;
+        pumpStartTime = millis();
+        digitalWrite(pumpPinGlobal, HIGH);
+        Serial.println("Pumping water ...");
+        Serial.print("Pump duration: ");
+        Serial.print(pumpStartTime);
+        Serial.println(" ms");
+    }
+}
+
+// Check pump status to see if it has run for the specified duration
+void handlePumpState()
+{
+    if (isPumping && (millis() - pumpStartTime) > pumpDuration)
+    {
+        isPumping = false;
+        digitalWrite(pumpPinGlobal, LOW);
+        Serial.println("Water pumped");
+    }
+}
+
+void pumpControl(int buttonPin, int pumpPin, int pump_duration)
+{
+    int reading = digitalRead(buttonPin);
+    if (reading != lastButtonState)
+    {
+        lastDebounceTime = millis();
+    }
+
+    if (millis() - lastDebounceTime > debounceDelay)
+    {
+        if (reading != buttonState)
+        {
+            buttonState = reading;
+            if (buttonState == HIGH)
+            {
+                pumpDuration = pump_duration; // Update global pumpDuration
+                startPump();
+            }
+        }
+    }
+    handlePumpState(); // No need to pass pump_duration here
+    lastButtonState = reading;
+}
+
+
 // Light Meter
 BH1750 lightMeter;
 
@@ -99,19 +172,19 @@ void printUltraSonicValues()
   Serial.println(distanceInch);
 }
 
-void checkPump()
-{
-  sensor_analog = analogRead(sensor_pin);
-  _moisture = (100 - ((sensor_analog / 4095.00) * 100));
-  if (_moisture > 25)
-  {
-    digitalWrite(25, HIGH);
-  }
-  else
-  {
-    digitalWrite(25, LOW);
-  }
-}
+// void checkPump()
+// {
+//   sensor_analog = analogRead(sensor_pin);
+//   _moisture = (100 - ((sensor_analog / 4095.00) * 100));
+//   if (_moisture > 25)
+//   {
+//     digitalWrite(25, HIGH);
+//   }
+//   else
+//   {
+//     digitalWrite(25, LOW);
+//   }
+// }
 
 void setup()
 {
@@ -147,7 +220,7 @@ void setup()
   // Ultrasonic Setup
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(echoPin, INPUT);  // Sets the echoPin as an Input
-
+  initPump(34, 33);
   pinMode(25, OUTPUT);
 }
 
@@ -166,10 +239,13 @@ void loop()
   // Ultrasonic
   printUltraSonicValues();
 
-  checkPump();
+  // Pump Control
+  pumpControl(34, 33, 5000);
+
+
+  // checkPump();
 
   Serial.println();
 
   // digitalWrite(25,HIGH);
-  delay(2000);
 }

@@ -13,12 +13,12 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 #include <webserver.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
 
 #include <webserverhandler.h>
 #include <sensor.h>
 #include <pump.h>
-#include <HTTPClient.h>
-#include <ArduinoJson.h>
 
 /* PIN
 Light Pin & Air Pin: SDA-21 SCL-22
@@ -39,15 +39,18 @@ unsigned long pump_duration = 5000;
 // Local IP Camera
 String my_Local_IP;
 
+// 
 BlynkTimer timer;
 
 // Light Meter
 BH1750 lightMeter;
+
 // Air Measure
 Adafruit_BME280 bme; // I2C
+
 // Moist Meter
-// int _moisture;
-int sensor_pin = 32;
+const int sensor_pin = 32;
+
 // Ultrasonic
 const int trigPin = 5;
 const int echoPin = 18;
